@@ -43,6 +43,10 @@ module.exports.findByIdUser = (req, res) => {
       res.send(userData);
     })
     .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(BAD_REQUEST_ERROR).send({ message: 'Переданы некорректные данные' });
+        return;
+      }
       res.status(INTERNAL_SERVER_ERROR).send({ message: `На сервере произошла ошибка: ${err.name}` });
     });
 };

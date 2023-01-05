@@ -5,7 +5,7 @@ const {
   INTERNAL_SERVER_ERROR,
 } = require('../errors/Errors');
 
-// GET /cards ++
+// GET /cards
 module.exports.findAllCards = (req, res) => {
   Card.find({})
     .then((cards) => {
@@ -27,7 +27,7 @@ module.exports.findAllCards = (req, res) => {
     });
 };
 
-// POST /cards ++
+// POST /cards
 module.exports.createCard = (req, res) => {
   const { name, link } = req.body;
   Card.create({ name, link, owner: req.user._id })
@@ -35,6 +35,7 @@ module.exports.createCard = (req, res) => {
       const cardData = {
         name: card.name,
         link: card.link,
+        _id: card._id,
       };
       res.send(cardData);
     })
@@ -61,6 +62,10 @@ module.exports.deleteCardById = (req, res) => {
       }
     })
     .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(BAD_REQUEST_ERROR).send({ message: 'Переданы некорректные данные' });
+        return;
+      }
       res.status(INTERNAL_SERVER_ERROR).send({ message: `На сервере произошла ошибка: ${err.name}` });
     });
 };
