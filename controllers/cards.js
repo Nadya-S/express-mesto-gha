@@ -51,17 +51,18 @@ module.exports.createCard = (req, res) => {
 // DELETE /cards/:cardId
 module.exports.deleteCardById = (req, res) => {
   Card.findById(req.params.cardId)
+    .orFail(new Error('NotValidId'))
     .then((card) => {
-      if (!card) {
-        res.status(NOT_FOUND_ERROR).send({ message: 'Карточка с указанным _id не найдена.' });
-        return;
-      }
       if (card.owner.toString() === req.user._id) {
         Card.findByIdAndRemove(req.params.cardId)
           .then(() => res.send({ message: 'Карточка удалена' }));
       }
     })
     .catch((err) => {
+      if (err.message === 'NotValidId') {
+        res.status(NOT_FOUND_ERROR).send({ message: 'Карточка с указанным _id не найдена.' });
+        return;
+      }
       if (err.name === 'CastError') {
         res.status(BAD_REQUEST_ERROR).send({ message: 'Переданы некорректные данные' });
         return;
@@ -77,14 +78,15 @@ module.exports.likeCard = (req, res) => {
     { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
     { new: true },
   )
-    .then((card) => {
-      if (!card) {
-        res.status(NOT_FOUND_ERROR).send({ message: 'Передан несуществующий _id карточки. ' });
-        return;
-      }
+    .orFail(new Error('NotValidId'))
+    .then(() => {
       res.send({ message: 'Лайк' });
     })
     .catch((err) => {
+      if (err.message === 'NotValidId') {
+        res.status(NOT_FOUND_ERROR).send({ message: 'Передан несуществующий _id карточки. ' });
+        return;
+      }
       if (err.name === 'CastError') {
         res.status(BAD_REQUEST_ERROR).send({ message: 'Переданы некорректные данные' });
         return;
@@ -100,14 +102,15 @@ module.exports.dislikeCard = (req, res) => {
     { $pull: { likes: req.user._id } }, // убрать _id из массива
     { new: true },
   )
-    .then((card) => {
-      if (!card) {
-        res.status(NOT_FOUND_ERROR).send({ message: 'Передан несуществующий _id карточки. ' });
-        return;
-      }
+    .orFail(new Error('NotValidId'))
+    .then(() => {
       res.send({ message: 'Дизлайк' });
     })
     .catch((err) => {
+      if (err.message === 'NotValidId') {
+        res.status(NOT_FOUND_ERROR).send({ message: 'Передан несуществующий _id карточки. ' });
+        return;
+      }
       if (err.name === 'CastError') {
         res.status(BAD_REQUEST_ERROR).send({ message: 'Переданы некорректные данные' });
         return;

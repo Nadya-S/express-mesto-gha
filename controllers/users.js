@@ -29,11 +29,8 @@ module.exports.findAllUsers = (req, res) => {
 // GET /users/:userId
 module.exports.findByIdUser = (req, res) => {
   User.findById(req.params.userId)
+    .orFail(new Error('NotValidId'))
     .then((user) => {
-      if (!user) {
-        res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемый пользователь не найден' });
-        return;
-      }
       const userData = {
         name: user.name,
         about: user.about,
@@ -43,6 +40,10 @@ module.exports.findByIdUser = (req, res) => {
       res.send(userData);
     })
     .catch((err) => {
+      if (err.message === 'NotValidId') {
+        res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемый пользователь не найден' });
+        return;
+      }
       if (err.name === 'CastError') {
         res.status(BAD_REQUEST_ERROR).send({ message: 'Переданы некорректные данные' });
         return;
@@ -78,11 +79,8 @@ module.exports.createUser = (req, res) => {
 module.exports.updateProfile = (req, res) => {
   const { name, about } = req.body;
   User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
+    .orFail(new Error('NotValidId'))
     .then((user) => {
-      if (!user) {
-        res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемый пользователь не найден' });
-        return;
-      }
       const userData = {
         name: user.name,
         about: user.about,
@@ -91,6 +89,10 @@ module.exports.updateProfile = (req, res) => {
       res.send(userData);
     })
     .catch((err) => {
+      if (err.message === 'NotValidId') {
+        res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемый пользователь не найден' });
+        return;
+      }
       if (err.name === 'ValidationError') {
         res.status(BAD_REQUEST_ERROR).send({ message: 'Переданы некорректные данные' });
         return;
@@ -103,11 +105,8 @@ module.exports.updateProfile = (req, res) => {
 module.exports.updateAvatar = (req, res) => {
   const { avatar } = req.body;
   User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
+    .orFail(new Error('NotValidId'))
     .then((user) => {
-      if (!user) {
-        res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемый пользователь не найден' });
-        return;
-      }
       const userData = {
         avatar: user.avatar,
       };
@@ -115,6 +114,10 @@ module.exports.updateAvatar = (req, res) => {
       res.send(userData);
     })
     .catch((err) => {
+      if (err.message === 'NotValidId') {
+        res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемый пользователь не найден' });
+        return;
+      }
       if (err.name === 'ValidationError') {
         res.status(BAD_REQUEST_ERROR).send({ message: 'Переданы некорректные данные' });
         return;
