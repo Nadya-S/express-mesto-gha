@@ -11,6 +11,7 @@ module.exports.findAllUsers = (req, res, next) => {
           name: user.name,
           about: user.about,
           avatar: user.avatar,
+          email: user.email,
           _id: user._id,
         };
         newUsers.push(userData);
@@ -25,24 +26,22 @@ module.exports.findAllUsers = (req, res, next) => {
 // GET /users/me
 module.exports.findMyProfile = (req, res, next) => {
   User.findById(req.user._id)
-    // .orFail(new Error('NotValidId'))
+    .orFail(new Error('NotValidId'))
     .then((user) => {
-      if (!user) {
-        throw new NotFoundError('Запрашиваемый пользователь не найден');
-      }
       const userData = {
         name: user.name,
         about: user.about,
+        email: user.email,
         avatar: user.avatar,
         _id: user._id,
       };
       res.send(userData);
     })
     .catch((err) => {
-      // if (err.message === 'NotValidId') {
-      //   next(new NotFoundError('Запрашиваемый пользователь не найден'));
-      //   return;
-      // }
+      if (err.message === 'NotValidId') {
+        next(new NotFoundError('Запрашиваемый пользователь не найден'));
+        return;
+      }
       next(err);
     });
 };
@@ -56,6 +55,7 @@ module.exports.findByIdUser = (req, res, next) => {
         name: user.name,
         about: user.about,
         avatar: user.avatar,
+        email: user.email,
         _id: user._id,
       };
       res.send(userData);
