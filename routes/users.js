@@ -1,16 +1,17 @@
 const router = require('express').Router();
+const { idValidator, updateProfileValidator, updateAvatarValidator } = require('../middlewares/validation');
 const {
-  createUser,
   findByIdUser,
   findAllUsers,
+  findMyProfile,
   updateProfile,
   updateAvatar,
 } = require('../controllers/users');
 
-router.get('/users', findAllUsers);
-router.get('/users/:userId', findByIdUser);
-router.post('/users', createUser);
-router.patch('/users/me', updateProfile);
-router.patch('/users/me/avatar', updateAvatar);
+router.get('/', findAllUsers); // найти всех пользователей
+router.get('/me', findMyProfile); // найти мой профиль
+router.get('/:_id', idValidator, findByIdUser); // найти профиль по айди
+router.patch('/me', updateProfileValidator, updateProfile); // обновить данные профиля
+router.patch('/me/avatar', updateAvatarValidator, updateAvatar); // обновить аватар
 
 module.exports = router;

@@ -1,12 +1,8 @@
 const User = require('../models/user');
-const {
-  NOT_FOUND_ERROR,
-  BAD_REQUEST_ERROR,
-  INTERNAL_SERVER_ERROR,
-} = require('../errors/Errors');
+const { NotFoundError, BadRequestError } = require('../errors/errors');
 
 // GET /users
-module.exports.findAllUsers = (req, res) => {
+module.exports.findAllUsers = (req, res, next) => {
   User.find({})
     .then((users) => {
       const newUsers = [];
@@ -22,13 +18,13 @@ module.exports.findAllUsers = (req, res) => {
       res.send(newUsers);
     })
     .catch((err) => {
-      res.status(INTERNAL_SERVER_ERROR).send({ message: `На сервере произошла ошибка: ${err.name}` });
+      next(err);
     });
 };
 
-// GET /users/:userId
-module.exports.findByIdUser = (req, res) => {
-  User.findById(req.params.userId)
+// GET /users/me
+module.exports.findMyProfile = (req, res, next) => {
+  User.findById(req.user._id)
     .orFail(new Error('NotValidId'))
     .then((user) => {
       const userData = {
@@ -41,22 +37,17 @@ module.exports.findByIdUser = (req, res) => {
     })
     .catch((err) => {
       if (err.message === 'NotValidId') {
-        res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемый пользователь не найден' });
+        next(new NotFoundError('Запрашиваемый пользователь не найден'));
         return;
       }
-      if (err.name === 'CastError') {
-        res.status(BAD_REQUEST_ERROR).send({ message: 'Переданы некорректные данные' });
-        return;
-      }
-      res.status(INTERNAL_SERVER_ERROR).send({ message: `На сервере произошла ошибка: ${err.name}` });
+      next(err);
     });
 };
 
-// POST /users
-module.exports.createUser = (req, res) => {
-  const { name, about, avatar } = req.body;
-
-  User.create({ name, about, avatar })
+// GET /users/:_id
+module.exports.findByIdUser = (req, res, next) => {
+  User.findById(req.params._id)
+    .orFail(new Error('NotValidId'))
     .then((user) => {
       const userData = {
         name: user.name,
@@ -67,16 +58,20 @@ module.exports.createUser = (req, res) => {
       res.send(userData);
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(BAD_REQUEST_ERROR).send({ message: 'Переданы некорректные данные' });
+      if (err.message === 'NotValidId') {
+        next(new NotFoundError('Запрашиваемый пользователь не найден'));
         return;
       }
-      res.status(INTERNAL_SERVER_ERROR).send({ message: `На сервере произошла ошибка: ${err.name}` });
+      if (err.name === 'CastError') {
+        next(new BadRequestError('Переданы некорректные данные'));
+        return;
+      }
+      next(err);
     });
 };
 
 // PATCH /users/me
-module.exports.updateProfile = (req, res) => {
+module.exports.updateProfile = (req, res, next) => {
   const { name, about } = req.body;
   User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
     .orFail(new Error('NotValidId'))
@@ -90,19 +85,19 @@ module.exports.updateProfile = (req, res) => {
     })
     .catch((err) => {
       if (err.message === 'NotValidId') {
-        res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемый пользователь не найден' });
+        next(new NotFoundError('Запрашиваемый пользователь не найден'));
         return;
       }
       if (err.name === 'ValidationError') {
-        res.status(BAD_REQUEST_ERROR).send({ message: 'Переданы некорректные данные' });
+        next(new BadRequestError('Переданы некорректные данные'));
         return;
       }
-      res.status(INTERNAL_SERVER_ERROR).send({ message: `На сервере произошла ошибка: ${err.name}` });
+      next(err);
     });
 };
 
 // PATH /users/me/avatar
-module.exports.updateAvatar = (req, res) => {
+module.exports.updateAvatar = (req, res, next) => {
   const { avatar } = req.body;
   User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
     .orFail(new Error('NotValidId'))
@@ -115,13 +110,13 @@ module.exports.updateAvatar = (req, res) => {
     })
     .catch((err) => {
       if (err.message === 'NotValidId') {
-        res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемый пользователь не найден' });
+        next(new NotFoundError('Запрашиваемый пользователь не найден'));
         return;
       }
       if (err.name === 'ValidationError') {
-        res.status(BAD_REQUEST_ERROR).send({ message: 'Переданы некорректные данные' });
+        next(new BadRequestError('Переданы некорректные данные'));
         return;
       }
-      res.status(INTERNAL_SERVER_ERROR).send({ message: `На сервере произошла ошибка: ${err.name}` });
+      next(err);
     });
 };
