@@ -25,8 +25,11 @@ module.exports.findAllUsers = (req, res, next) => {
 // GET /users/me
 module.exports.findMyProfile = (req, res, next) => {
   User.findById(req.user._id)
-    .orFail(new Error('NotValidId'))
+    // .orFail(new Error('NotValidId'))
     .then((user) => {
+      if (!user) {
+        throw new NotFoundError('Запрашиваемый пользователь не найден');
+      }
       const userData = {
         name: user.name,
         about: user.about,
@@ -36,10 +39,10 @@ module.exports.findMyProfile = (req, res, next) => {
       res.send(userData);
     })
     .catch((err) => {
-      if (err.message === 'NotValidId') {
-        next(new NotFoundError('Запрашиваемый пользователь не найден'));
-        return;
-      }
+      // if (err.message === 'NotValidId') {
+      //   next(new NotFoundError('Запрашиваемый пользователь не найден'));
+      //   return;
+      // }
       next(err);
     });
 };
