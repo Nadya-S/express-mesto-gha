@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
-const { BadRequestError, ConflictError } = require('../errors/errors');
+const { BadRequestError, ConflictError } = require('../errors/Errors');
 
 // вход post /signin
 module.exports.login = (req, res, next) => {
