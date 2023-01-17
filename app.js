@@ -29,7 +29,7 @@ app.use('/', authRouter);
 
 app.use('/users', auth, userRouter);
 app.use('/cards', auth, cardRouter);
-app.use('*', () => {
+app.use('*', auth, () => {
   throw new NotFoundError('Путь не найден');
 });
 

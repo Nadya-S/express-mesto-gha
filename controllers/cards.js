@@ -49,13 +49,12 @@ module.exports.deleteCardById = (req, res, next) => {
   Card.findById(req.params._id)
     .orFail(new Error('NotValidId'))
     .then((card) => {
-      if (card.owner.toString() === req.user._id) {
-        Card.findByIdAndRemove(req.params.cardId)
-          .then(() => res.send({ message: 'Карточка удалена' }));
-      } else {
-        next(new ForbiddenError('Невозможно удалить чужую карточку'));
+      if (card.owner.toString() !== req.user._id) {
+        throw new ForbiddenError('Невозможно удалить чужую карточку');
       }
+      return Card.findByIdAndRemove(req.params._id);
     })
+    .then(() => res.send({ message: 'Карточка удалена' }))
     .catch((err) => {
       if (err.message === 'NotValidId') {
         next(new NotFoundError('Карточка с указанным _id не найдена.'));
